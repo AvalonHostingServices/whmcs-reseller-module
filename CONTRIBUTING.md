@@ -78,20 +78,48 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/Avalon
 - Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
 - Keep commits small and focused
 - Reference issues when relevant: "Closes #123" or "Fixes #456"
-- **Always sign your commits** using `git commit -S -m "message"`
+- **REQUIRED: Always sign your commits** using `git commit -S -m "message"`
 
-To set up signing commits:
+All commits must be cryptographically signed with GPG. Unsigned commits will not be accepted.
+
+### Setting Up Commit Signing
+
+If you haven't set up commit signing yet:
 
 ```bash
-# Generate a GPG key if you don't have one
+# Generate a GPG key (if you don't have one)
 gpg --gen-key
 
 # List your keys
 gpg --list-secret-keys --keyid-format LONG
 
-# Configure Git
+# Configure Git to use your key
 git config --global user.signingkey YOUR_KEY_ID
 git config --global commit.gpgsign true
+
+# Optional: Configure per-repository
+git config commit.gpgsign true
+git config user.signingkey YOUR_KEY_ID
+```
+
+### Signing Commits
+
+```bash
+# Sign a single commit
+git commit -S -m "Your commit message"
+
+# Sign all future commits (requires configuration above)
+git commit -m "Your commit message"
+```
+
+### Verifying Your Signature
+
+```bash
+# View commit signatures in your branch
+git log --show-signature
+
+# View a single commit's signature
+git show --show-signature <commit-hash>
 ```
 
 ## Testing
@@ -106,6 +134,23 @@ git config --global commit.gpgsign true
 - Update CHANGELOG.md with your changes
 - Add comments to complex code
 - Update documentation in docs/ folder if applicable
+
+## Release Management
+
+For information about creating and managing releases, see [RELEASE_PROCESS.md](RELEASE_PROCESS.md).
+
+Key points:
+- Releases are created using semantic versioning (v1.0.0, v1.1.0, etc.)
+- Push a version tag to automatically build and release the `modules` folder
+- All commits in a release must be signed with GPG
+- Release packages include only the `modules/` directory and all subdirectories
+- SHA256 checksums are automatically generated for integrity verification
+
+To create a release:
+```bash
+git tag -s v1.0.1 -m "Release version 1.0.1"
+git push origin v1.0.1
+```
 
 ## Questions?
 

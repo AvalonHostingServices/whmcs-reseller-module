@@ -1,0 +1,99 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*"
+
+jobs:
+    create-release:
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: write
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+
+            - name: Get version from tag
+              id: get_version
+              run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
+
+            - name: Create modules package
+              run: |
+                  # Create a temporary directory for packaging
+                  mkdir -p release-temp/modules
+
+                  # Copy only the modules folder structure
+                  cp -r modules/servers release-temp/modules/
+
+                  # Create the zip file
+                  cd release-temp
+                  zip -r "whmcs-reseller-module-${{ steps.get_version.outputs.VERSION }}.zip" modules/
+                  cd ..
+
+                  # Move the zip to the root for uploading
+                  mv release-temp/*.zip ./
+
+                  # Also create a tar.gz version
+                  cd release-temp
+                  tar -czf "whmcs-reseller-module-${{ steps.get_version.outputs.VERSION }}.tar.gz" modules/
+                  cd ..
+                  mv release-temp/*.tar.gz ./
+
+                  # Cleanup
+                  rm -rf release-temp
+
+            - name: Generate checksums
+              run: |
+                  sha256sum "whmcs-reseller-module-${{ steps.get_version.outputs.VERSION }}.zip" > "whmcs-reseller-module-${{ steps.get_version.outputs.VERSION }}.zip.sha256"
+                  sha256sum "whmcs-reseller-module-${{ steps.get_version.outputs.VERSION }}.tar.gz" > "whmcs-reseller-module-${{ steps.get_version.outputs.VERSION }}.tar.gz.sha256"
+
+            - name: Create Release Notes
+              id: release_notes
+              run: |
+                  VERSION="${{ steps.get_version.outputs.VERSION }}"
+                  echo "Creating release notes for ${VERSION}"
+                  echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
+                  echo "## Installation Instructions" >> $GITHUB_OUTPUT
+                  echo "" >> $GITHUB_OUTPUT
+                  echo "1. Download the release package below" >> $GITHUB_OUTPUT
+                  echo "2. Extract the contents to your WHMCS root directory:" >> $GITHUB_OUTPUT
+                  echo "   - Unzip: \`unzip whmcs-reseller-module-${VERSION}.zip -d /path/to/whmcs/\`" >> $GITHUB_OUTPUT
+                  echo "   - Or extract tar.gz: \`tar -xzf whmcs-reseller-module-${VERSION}.tar.gz -C /path/to/whmcs/\`" >> $GITHUB_OUTPUT
+                  echo "3. Files will be extracted to: \`modules/servers/products_reseller_server/\`" >> $GITHUB_OUTPUT
+                  echo "4. Log in to WHMCS Admin and configure the module" >> $GITHUB_OUTPUT
+                  echo "" >> $GITHUB_OUTPUT
+                  echo "## Checksum Verification" >> $GITHUB_OUTPUT
+                  echo "" >> $GITHUB_OUTPUT
+                  echo "Verify the integrity of the downloaded package using SHA256 checksums provided below." >> $GITHUB_OUTPUT
+                  echo "" >> $GITHUB_OUTPUT
+                  echo "### SHA256 Checksums" >> $GITHUB_OUTPUT
+                  echo "\`\`\`" >> $GITHUB_OUTPUT
+                  cat "whmcs-reseller-module-${VERSION}.zip.sha256" >> $GITHUB_OUTPUT
+                  cat "whmcs-reseller-module-${VERSION}.tar.gz.sha256" >> $GITHUB_OUTPUT
+                  echo "\`\`\`" >> $GITHUB_OUTPUT
+                  echo "" >> $GITHUB_OUTPUT
+                  echo "## Changes" >> $GITHUB_OUTPUT
+                  echo "" >> $GITHUB_OUTPUT
+                  echo "See [CHANGELOG.md](https://github.com/AvalonHostingServices/whmcs-reseller-module/blob/master/CHANGELOG.md) for detailed information." >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: ${{ steps.get_version.outputs.VERSION }}
+                  name: Release ${{ steps.get_version.outputs.VERSION }}
+                  body: ${{ steps.release_notes.outputs.RELEASE_NOTES }}
+                  draft: false
+                  prerelease: false
+                  files: |
+                      whmcs-reseller-module-${{ steps.get_version.outputs.VERSION }}.zip
+                      whmcs-reseller-module-${{ steps.get_version.outputs.VERSION }}.zip.sha256
+                      whmcs-reseller-module-${{ steps.get_version.outputs.VERSION }}.tar.gz
+                      whmcs-reseller-module-${{ steps.get_version.outputs.VERSION }}.tar.gz.sha256
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
