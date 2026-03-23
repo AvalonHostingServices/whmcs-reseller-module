@@ -1,0 +1,56 @@
+name: PHP Lint and Code Quality
+
+on:
+    push:
+        branches: [main, master, develop]
+    pull_request:
+        branches: [main, master, develop]
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                php-version: ["7.4", "8.0", "8.1", "8.2"]
+
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Setup PHP ${{ matrix.php-version }}
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php-version }}
+                  tools: cs2pr
+
+            - name: PHP Lint
+              run: |
+                  find . -type f -name "*.php" ! -path "./vendor/*" -exec php -l {} \;
+
+            - name: Check Code Style
+              run: |
+                  # This is a basic check. Install phpcs for more advanced checks
+                  find . -type f -name "*.php" ! -path "./vendor/*" | head -5 | xargs php -l
+              continue-on-error: true
+
+    security:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Run Trivy vulnerability scanner
+              uses: aquasecurity/trivy-action@master
+              with:
+                  scan-type: "fs"
+                  scan-ref: "."
+                  format: "sarif"
+                  output: "trivy-results.sarif"
+              continue-on-error: true
+
+            - name: Upload Trivy results to GitHub Security tab
+              uses: github/codeql-action/upload-sarif@v2
+              if: always()
+              with:
+                  sarif_file: "trivy-results.sarif"
+              continue-on-error: true

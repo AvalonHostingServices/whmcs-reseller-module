@@ -1,0 +1,58 @@
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+.netbeans/
+
+# OS
+Thumbs.db
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+vendor/
+composer.lock
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+out/
+
+# WHMCS specific
+configuration.php
+/downloads/
+/cache/
+/attachments/
+/activity/
+/admin/downloads/
+/includes/api/
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+*.old
+
+# Testing
+coverage/
+.nyc_output/
+
+# Mac
+.AppleDouble
+.LSOverride
+._*
+.localized

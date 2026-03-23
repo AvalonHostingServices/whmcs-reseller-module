@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security Vulnerabilities
+    url: https://github.com/AvalonHostingServices/whmcs-reseller-module/security/advisories
+    about: Please report security issues privately
+  - name: Documentation
+    url: https://docs.avalon.hosting/
+    about: View the module documentation
+  - name: Support Email
+    url: mailto:support@avalon.hosting
+    about: Contact support for general assistance
