@@ -161,7 +161,7 @@ Feel free to:
 
 ## License
 
-By contributing to this project, you agree that your contributions will be licensed under its GPL-3.0 License.
+By submitting a contribution to this project, you agree that your contribution will be governed by the terms of the [Proprietary License](LICENSE.md). In particular, you grant Avalon Hosting Services a perpetual, irrevocable, royalty-free license to use, modify, and incorporate your contribution into the Software. Your contribution does not grant you any ownership rights or additional use rights beyond those already set out in the license.
 
 ---
 

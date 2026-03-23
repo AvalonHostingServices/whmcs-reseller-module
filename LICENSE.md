@@ -1,44 +1,78 @@
-# License
+# Proprietary License
 
-WHMCS Reseller Module - A WHMCS server module for reselling hosting services
-Copyright (C) 2026 Avalon Hosting Services
+Copyright (C) 2026 Avalon Hosting Services. All rights reserved.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+## Terms and Conditions
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+### 1. Definitions
 
-You should have received a copy of the GNU General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
+- **"Software"** means the Products Reseller for WHMCS module and all associated source
+  code, documentation, and files in this repository.
+- **"Avalon"** means Avalon Hosting Services, the copyright holder.
+- **"You"** means any individual or legal entity that accesses, uses, or contributes to
+  the Software.
+- **"Contribution"** means any source code, documentation, or other material submitted
+  to Avalon for inclusion in the Software.
+
+### 2. Grant of Rights
+
+Subject to the terms of this license, Avalon grants You a limited, non-exclusive,
+non-transferable, non-sublicensable right to:
+
+- View and read the source code of the Software.
+- Install and use the Software solely in connection with an active Avalon Hosting
+  Services reseller account.
+- Submit Contributions to Avalon through the official repository.
+
+### 3. Restrictions
+
+You may **not**, without prior written permission from Avalon:
+
+- Copy, redistribute, sell, sublicense, or otherwise transfer the Software or any
+  portion of it to any third party.
+- Publish, host, or make the Software (or any derivative of it) publicly available
+  outside of the official Avalon repository.
+- Create, distribute, or offer a competing product or service that is based on,
+  derived from, or substantially similar to the Software.
+- Remove, alter, or obscure any copyright, trademark, or proprietary notice in the
+  Software.
+- Use the Avalon name, logo, or trademarks without prior written consent.
+
+### 4. Contributions
+
+By submitting a Contribution to this repository, You:
+
+- Represent that You have the right to submit the Contribution.
+- Grant Avalon a perpetual, worldwide, irrevocable, royalty-free license to use,
+  modify, incorporate, and sublicense Your Contribution as part of the Software under
+  any terms Avalon chooses.
+- Agree that Your Contribution does not grant You any additional rights to the Software
+  beyond those set out in Section 2.
+
+Contributions are welcome. Please review [CONTRIBUTING.md](CONTRIBUTING.md) before
+submitting a pull request.
+
+### 5. No Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL AVALON BE LIABLE FOR ANY CLAIM,
+DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE OF OR INABILITY TO USE THE SOFTWARE.
+
+### 6. Termination
+
+Your rights under this license terminate automatically if You breach any of these terms.
+Avalon may also terminate this license at any time with or without notice. Upon
+termination, You must cease all use of the Software and delete all copies in Your
+possession.
+
+### 7. Governing Law
+
+This license shall be governed by and construed in accordance with applicable law.
+Any disputes shall be subject to the exclusive jurisdiction of the courts designated
+by Avalon Hosting Services.
 
 ---
 
-## Summary of GNU General Public License v3
-
-The GNU General Public License is a free, copyleft license for software and other kinds of works.
-
-**Permissions:**
-- Commercial use
-- Modification
-- Distribution
-- Private use
-
-**Conditions:**
-- Disclose source
-- License and copyright notice
-- State changes
-
-**Limitations:**
-- Liability
-- Warranty
-
-For the full license text, see: https://www.gnu.org/licenses/gpl-3.0.html
-
-## Third-Party Licenses
-
-This project may include components with other open-source licenses. See individual files for details.
+For licensing inquiries or permissions beyond the scope of this license, contact:
+[support@avalon.hosting](mailto:support@avalon.hosting)
