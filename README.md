@@ -1,130 +1,147 @@
 # WHMCS Reseller Module
 
-A comprehensive WHMCS server module for reselling Avalon Hosting Services' hosting products. This module integrates seamlessly with WHMCS to enable resellers to manage hosting provisioning, suspension, and termination.
+WHMCS server module for Avalon Hosting Services resellers.
+
+This module connects WHMCS to the Avalon reseller API so services can be provisioned and managed from normal WHMCS service actions.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![License](https://img.shields.io/badge/license-GPLv3-green)
 ![WHMCS](https://img.shields.io/badge/WHMCS-8.0+-blue)
+![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue)
 
-## Features
+## Version
 
-- 🚀 **Automated Provisioning** - Seamlessly provision hosting accounts
-- 🛑 **Account Management** - Suspend and terminate accounts
-- 🔄 **Real-time Synchronization** - Keep account data synchronized
-- 🔐 **Secure Integration** - Enterprise-grade security
-- 📊 **Admin Dashboard** - Comprehensive management interface
-- 🌐 **Multi-server Support** - Manage multiple reseller accounts
+- Current stable version: **1.0.0**
+- Release channel: GitHub Releases
+
+## Key Capabilities
+
+- Automatic account provisioning
+- Suspend and unsuspend services
+- Terminate services
+- Change package
+- Change password
+- cPanel SSO support (when upstream server type is cPanel)
+- Product import and mapping helpers in WHMCS admin
 
 ## Requirements
 
-- **WHMCS Version:** 8.0 or higher
-- **PHP Version:** 7.4 or higher
-- **cPanel/WHM** (for cPanel integration)
+- WHMCS 8.0 or newer
+- PHP 7.4 or newer
+- Active reseller access from Avalon Hosting Services
+- API endpoint and API key from your reseller settings
 
-## Installation
+## What Is In A Release Package
 
-1. Download the latest release from the [Releases](https://github.com/AvalonHostingServices/whmcs-reseller-module/releases) page
-2. Extract the module files to your WHMCS `modules/servers/` directory
-3. Log in to your WHMCS admin area
-4. Navigate to **System Settings** > **Products/Services** > **Servers**
-5. Create a new server and select "Products Reseller" as the server type
-6. Configure your reseller credentials and save
+Each release package contains only:
 
-## Configuration
+```text
+modules/
+   servers/
+      products_reseller_server/
+```
 
-### Server Setup
+This is intentional so resellers can extract directly into WHMCS root.
 
-1. Go to **System Settings** > **Servers**
-2. Create a new server with the following details:
-   - **Name:** Your reseller account name
-   - **Type:** Products Reseller Server
-   - **Hostname:** Your reseller hostname
-   - **Port:** Your API port
-   - **Username/Password:** Your credentials
+## Installation (Recommended)
 
-### Creating Reseller Products
+1. Download the latest file from [Releases](https://github.com/AvalonHostingServices/whmcs-reseller-module/releases).
+2. Upload the downloaded ZIP to your server.
+3. Extract the ZIP in your WHMCS root so folder path becomes:
+    `modules/servers/products_reseller_server/`
+4. Open WHMCS admin.
+5. Go to **System Settings > Servers**.
+6. Create a new server and select **Products Reseller for WHMCS**.
+7. Save server settings and assign it to your products.
 
-1. Create a new product/service in WHMCS
-2. Set the server type to "Products Reseller"
-3. Assign your configured reseller server
-4. Configure package mappings and billing settings
+## Server Configuration
 
-## Usage
+When server type is **Products Reseller for WHMCS**, labels are adapted in WHMCS admin:
 
-### For Resellers
+- **Username field** is used as **API Endpoint**
+- **Password field** is used as **API Key**
 
-Once installed and configured, resellers can:
-- Automatically provision hosting accounts through WHMCS orders
-- Receive automated suspension/unsuspension notices
-- View account status and management options
+Use credentials from your reseller settings page.
 
-### For Administrators
+## Product Setup In WHMCS
 
-Administrators have access to:
-- Server management and configuration
-- Account status monitoring
-- Error logs and debugging tools
-- Bulk account operations (coming in v1.1.0)
+1. Create or edit a WHMCS product.
+2. Set module type to **Products Reseller for WHMCS**.
+3. Choose the mapped upstream product from module config options.
+4. Save and test with a new order.
+
+## Supported Module Actions
+
+The module implements these WHMCS server actions:
+
+- `CreateAccount`
+- `SuspendAccount`
+- `UnsuspendAccount`
+- `TerminateAccount`
+- `ChangePackage`
+- `ChangePassword`
+- `CreateSSOSession` (for cPanel SSO flow)
+
+## API Integration Notes
+
+The module sends JSON requests to your configured endpoint with this shape:
+
+```json
+{
+   "api_key": "your_api_key",
+   "action": "CreateAccount",
+   "params": {
+      "serviceid": 123,
+      "server_id": 1
+   }
+}
+```
+
+The module expects JSON responses with `status` and related fields.
+
+## Troubleshooting
+
+- **Module type not visible in WHMCS**:
+   Confirm files are extracted to `modules/servers/products_reseller_server/`.
+- **Connection test fails**:
+   Verify API endpoint, API key, and outbound HTTPS access.
+- **Action returns error text in WHMCS**:
+   Check **Utilities > Logs > Module Log** in WHMCS.
 
 ## Documentation
 
-Full documentation is available at: [https://docs.avalon.hosting/](https://docs.avalon.hosting/)
+- Installation and release process: [INSTALL.md](INSTALL.md)
+- Release flow and tagging: [RELEASE_PROCESS.md](RELEASE_PROCESS.md)
+- Changes by version: [CHANGELOG.md](CHANGELOG.md)
 
-Key guides:
-- [Installation Guide](https://docs.avalon.hosting/whmcs-reseller-module/installation)
-- [Configuration Guide](https://docs.avalon.hosting/whmcs-reseller-module/configuration)
-- [API Reference](https://docs.avalon.hosting/whmcs-reseller-module/api)
-- [Troubleshooting](https://docs.avalon.hosting/whmcs-reseller-module/troubleshooting)
+## Security
+
+Do not report security issues in public issues.
+
+- Report privately: [security@avalon.hosting](mailto:security@avalon.hosting)
+- Security policy: [SECURITY.md](SECURITY.md)
 
 ## Support
 
-### Getting Help
-
-- 📧 **Email:** support@avalon.hosting
-- 📋 **Issue Tracker:** [GitHub Issues](https://github.com/AvalonHostingServices/whmcs-reseller-module/issues)
-- 💬 **Discussions:** [GitHub Discussions](https://github.com/AvalonHostingServices/whmcs-reseller-module/discussions)
-
-### Security
-
-Please report security vulnerabilities privately to [security@avalon.hosting](mailto:security@avalon.hosting) instead of using the public issue tracker. See [SECURITY.md](SECURITY.md) for more details.
+- Email: support@avalon.hosting
+- Issues: [GitHub Issues](https://github.com/AvalonHostingServices/whmcs-reseller-module/issues)
+- Discussions: [GitHub Discussions](https://github.com/AvalonHostingServices/whmcs-reseller-module/discussions)
 
 ## Contributing
 
-We welcome contributions from the community! Before contributing, please review:
+Contributions are welcome. Please review:
 
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) - Community code of conduct
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
-## Changelog
-
-All notable changes are documented in [CHANGELOG.md](CHANGELOG.md).
-
-### Version 1.0.0 - Initial Release
-
-Initial stable release featuring:
-- Core provisioning functionality
-- cPanel integration
-- Administrative dashboard
-- Comprehensive error handling
-- Full API support
+All commits must be signed.
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE.md](LICENSE.md) file for details.
+See [LICENSE.md](LICENSE.md).
 
-## Credits
+## Maintained By
 
-Developed by **Avalon Hosting Services**
+Avalon Hosting Services
 
-- Website: [https://avalon.hosting/](https://avalon.hosting/)
-- GitHub: [@AvalonHostingServices](https://github.com/AvalonHostingServices)
-
-## Community
-
-- ⭐ Star our repository if you find it helpful!
-- 🐛 Report bugs and suggest features via [GitHub Issues](https://github.com/AvalonHostingServices/whmcs-reseller-module/issues)
-- 💡 Join discussions in our [community forum](https://github.com/AvalonHostingServices/whmcs-reseller-module/discussions)
-
----
-
-**Version 1.0.0** | Last updated: March 2026
+- Website: https://avalon.hosting/
+- GitHub: https://github.com/AvalonHostingServices
