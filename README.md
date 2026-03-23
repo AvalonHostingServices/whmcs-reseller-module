@@ -26,9 +26,12 @@ This module connects WHMCS to the Avalon reseller API so services can be provisi
 ## Requirements
 
 - WHMCS 8.0 or newer
-- PHP 7.4 or newer
+- PHP 7.4 or newer (must be compatible with your installed WHMCS 8 release)
+- PHP extensions: `curl`, `json`, `openssl`
+- Outbound HTTPS connectivity from the WHMCS server to the reseller API endpoint
 - Active reseller access from Avalon Hosting Services
 - API endpoint and API key from your reseller settings
+- File write permission for WHMCS hooks directory (`includes/hooks`) during module initialization
 
 ## What Is In A Release Package
 
@@ -69,34 +72,9 @@ Use credentials from your reseller settings page.
 3. Choose the mapped upstream product from module config options.
 4. Save and test with a new order.
 
-## Supported Module Actions
+## API Documentation
 
-The module implements these WHMCS server actions:
-
-- `CreateAccount`
-- `SuspendAccount`
-- `UnsuspendAccount`
-- `TerminateAccount`
-- `ChangePackage`
-- `ChangePassword`
-- `CreateSSOSession` (for cPanel SSO flow)
-
-## API Integration Notes
-
-The module sends JSON requests to your configured endpoint with this shape:
-
-```json
-{
-   "api_key": "your_api_key",
-   "action": "CreateAccount",
-   "params": {
-      "serviceid": 123,
-      "server_id": 1
-   }
-}
-```
-
-The module expects JSON responses with `status` and related fields.
+Detailed API action reference, request format, and examples are available in [API.md](API.md).
 
 ## Troubleshooting
 
@@ -111,6 +89,7 @@ The module expects JSON responses with `status` and related fields.
 
 - Installation and release process: [INSTALL.md](INSTALL.md)
 - Release flow and tagging: [RELEASE_PROCESS.md](RELEASE_PROCESS.md)
+- API action reference: [API.md](API.md)
 - Changes by version: [CHANGELOG.md](CHANGELOG.md)
 
 ## Security
