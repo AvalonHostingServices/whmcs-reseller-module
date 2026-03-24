@@ -96,6 +96,5 @@ jobs:
                       whmcs-reseller-module-${{ steps.get_version.outputs.VERSION }}.tar.gz
                       whmcs-reseller-module-${{ steps.get_version.outputs.VERSION }}.tar.gz.sha256
               env:
-                  # Use a personal access token (RELEASE_PAT) to attribute releases to your account.
-                  # Falls back to the default GitHub Actions token if RELEASE_PAT is not set.
-                  GITHUB_TOKEN: ${{ secrets.RELEASE_PAT != '' && secrets.RELEASE_PAT || secrets.GITHUB_TOKEN }}
+                  # Must use a personal access token to attribute releases to your account.
+                  GITHUB_TOKEN: ${{ secrets.RELEASE_PAT }}
