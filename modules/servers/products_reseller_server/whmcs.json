@@ -1,21 +1,22 @@
 {
-    "schema": "1.0",
-    "type": "whmcs-servers",
-    "name": "products_reseller_server",
-    "license": "proprietary",
-    "category": "provisioning",
-    "description": {
-        "name": "Products Reseller for WHMCS",
-        "tagline": "Reselling Hosting Services integration for WHMCS",
-        "long": "This module provides reselling hosting services inside WHMCS."
-    },
-    "support": {
-        "docs_url": "https://github.com/AvalonHostingServices/whmcs-reseller-module"
-    },
-    "authors": [
-        {
-            "name": "Avalon Hosting Services",
-            "homepage": "https://avalonhosting.services/"
-        }
-    ]
+	"schema": "1.0",
+	"type": "whmcs-servers",
+	"name": "products_reseller_server",
+	"license": "proprietary",
+	"category": "provisioning",
+	"version": "1.0.0",
+	"description": {
+		"name": "Products Reseller for WHMCS",
+		"tagline": "Reselling Hosting Services integration for WHMCS",
+		"long": "This module provides reselling hosting services inside WHMCS."
+	},
+	"support": {
+		"docs_url": "https://github.com/AvalonHostingServices/whmcs-reseller-module"
+	},
+	"authors": [
+		{
+			"name": "Avalon Hosting Services",
+			"homepage": "https://avalonhosting.services/"
+		}
+	]
 }
