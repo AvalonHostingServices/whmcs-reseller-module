@@ -6,7 +6,7 @@ This module connects WHMCS to the Avalon reseller API so services can be provisi
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![WHMCS](https://img.shields.io/badge/WHMCS-8.0+-blue)
-![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue)
+![PHP](https://img.shields.io/badge/PHP-8.1%2B-blue)
 
 ## Version
 
@@ -26,7 +26,7 @@ This module connects WHMCS to the Avalon reseller API so services can be provisi
 ## Requirements
 
 - WHMCS 8.0 or newer
-- PHP 7.4 or newer (must be compatible with your installed WHMCS 8 release)
+- PHP 8.1 or newer (must be compatible with your installed WHMCS 8 release)
 - PHP extensions: `curl`, `json`, `openssl`
 - Outbound HTTPS connectivity from the WHMCS server to the reseller API endpoint
 - Active reseller access from Avalon Hosting Services

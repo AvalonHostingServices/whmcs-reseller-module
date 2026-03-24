@@ -46,7 +46,7 @@ Your public GitHub repository for WHMCS resellers has been fully configured with
 
 1. **lint.yml** - PHP code quality checks
    - Runs on push and pull requests
-   - Tests PHP 7.4, 8.0, 8.1, 8.2
+   - Tests PHP 8.0, 8.1, 8.2, 8.3, 8.4
    - Includes security vulnerability scanning
 
 2. **release.yml** - Automated release packaging

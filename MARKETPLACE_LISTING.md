@@ -149,7 +149,7 @@ visibility controls without modifying core WHMCS files.
 | Requirement    | Minimum                                                            |
 | -------------- | ------------------------------------------------------------------ |
 | WHMCS          | 8.0 or newer                                                       |
-| PHP            | 7.4 or newer                                                       |
+| PHP            | 8.1 or newer                                                       |
 | PHP Extensions | `curl`, `json`, `openssl`                                          |
 | Connectivity   | Outbound HTTPS from WHMCS server to Avalon reseller API endpoint   |
 | Permissions    | File write permission on `includes/hooks/` during first activation |
@@ -253,4 +253,4 @@ reseller, provisioning, server module, cPanel, hosting, VPS, dedicated server, S
 - [ ] Long description proofread and HTML validated (if HTML version used)
 - [ ] Tags entered
 - [ ] Pricing model decided
-- [ ] Module tested against WHMCS 8.x on PHP 7.4 and PHP 8.x before submission
+- [ ] Module tested against WHMCS 8.x on PHP 8.1 and PHP 8.x before submission
