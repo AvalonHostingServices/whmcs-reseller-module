@@ -44,9 +44,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2026-06-12
+
+### Added
+- Product import/sync workflow with advanced pricing management
+- Bulk operations support for product management
+- Enhanced admin dashboard for product mapping and configuration
+- Delete product mapping API action for automatic cleanup
+- Comprehensive agent instructions (AGENTS.md) for AI-assisted development
+- Modal-based UI for product import/sync workflow
+- Improved pricing calculation with margin support
+
+### Enhanced
+- Refined prs_hooks.php with improved modal styling and AJAX handlers
+- Updated module metadata for v1.4.0 release
+- Enhanced documentation and API reference
+- Better error handling and logging throughout the module
+- Improved WHMCS ORM integration
+
+### Fixed
+- Product deletion now properly cleans up associated mappings
+- Better handling of custom field updates
+- Improved API request error messages
+
+---
+
 ## Unreleased
 
-### Planned for v1.1.0
+### Planned for v1.5.0
 - Bulk account operations
 - Advanced reporting and analytics
 - Enhanced webhook support
@@ -54,7 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance optimizations
 - Improved caching mechanisms
 
-### Planned for v1.2.0
+### Planned for v2.0.0
 - Multi-language support
 - Custom field mapping
 - Advanced automation features
