@@ -4,7 +4,7 @@
 	"name": "products_reseller_server",
 	"license": "proprietary",
 	"category": "provisioning",
-	"version": "1.0.0",
+	"version": "1.4.0",
 	"description": {
 		"name": "Products Reseller for WHMCS",
 		"tagline": "Reselling Hosting Services integration for WHMCS",

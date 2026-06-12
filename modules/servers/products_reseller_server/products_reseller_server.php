@@ -1,18 +1,15 @@
 <?php
-
+ 
 if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
 }
-
+ 
 use WHMCS\Database\Capsule;
 use WHMCS\Module\Server\CustomAction;
 use WHMCS\Module\Server\CustomActionCollection;
-
+ 
 require_once __DIR__ . '/pr_server_classes.php';
-include_once __DIR__ . '/hooks.php';
-
-whmp_prs_copyFileToHooks();
-
+ 
 function products_reseller_server_MetaData() {
     return array(
         'DisplayName' => 'Products Reseller for WHMCS',
@@ -22,43 +19,56 @@ function products_reseller_server_MetaData() {
         'AdminSingleSignOnLabel'   => "Login to cPanel",
     );
 }
-
-
+ 
+$hooks = Capsule::table('tblconfiguration')
+    ->where('setting', 'ModuleHooks')
+    ->value('value');
+ 
+$hooksList = array_filter(explode(',', (string) $hooks));
+ 
+if (!in_array('products_reseller_server', $hooksList)) {
+    $hooksList[] = 'products_reseller_server';
+    Capsule::table('tblconfiguration')->updateOrInsert(
+        ['setting' => 'ModuleHooks'],
+        ['value' => implode(',', $hooksList)]
+    );
+}
+ 
 function products_reseller_server_TestConnection($params) {
     
     $server_id = Capsule::table('tblservers')->where('type', 'products_reseller_server')->where('active', 1)->value('id');
     $main_class = new ProductsReseller_Main();
-
+ 
     $all_products = $main_class->send_request_to_api([
         'action' => 'Get_Products',
         'server_id' => $server_id
     ]);
     
     return [
-        'success' => (is_array($all_products['data']) && !empty($all_products['data']) ? true : false),
+        'success' => ((is_array($all_products['data']) && $all_products['status'] == 'success') ? true : false),
         'error' => $all_products['message'],
     ];
 }
-
+ 
 function products_reseller_server_ConfigOptions($params) {
     
     $server_id = Capsule::table('tblservers')->where('type', 'products_reseller_server')->where('active', 1)->value('id');
     
     $main_class = new ProductsReseller_Main();
-
+ 
     $all_products = $main_class->send_request_to_api([
         'action' => 'Get_Products',
         'server_id' => $server_id
     ]);
-
+ 
     $products = ['0' => 'Select Product'];
-
+ 
     if (isset($all_products['data']) && is_array($all_products['data'])) {
         foreach ($all_products['data'] as $product) {
             $products[$product['product_id']] = $product['product_name'];
         }
     }
-
+ 
     return [
         "products" => [
             "FriendlyName" => "Assigned Products",
@@ -112,127 +122,269 @@ function products_reseller_server_ConfigOptions($params) {
     ];
 }
 
+function prs_getServiceCustomFields($serviceId)
+{
+    $service = Capsule::table('tblhosting')->where('id', $serviceId)->first();
+    if (!$service) return [];
+ 
+    $fields = Capsule::table('tblcustomfields')
+        ->where('type', 'product')
+        ->where('relid', $service->packageid)
+        ->get();
+ 
+    $result = [];
+    foreach ($fields as $field) {
+        $value = Capsule::table('tblcustomfieldsvalues')
+            ->where('relid', $serviceId)
+            ->where('fieldid', $field->id)
+            ->value('value');
+ 
+        $result[$field->fieldname] = $value ?? '';
+    }
+ 
+    return $result;
+}
 
+function prs_getServiceConfigOptions($serviceId)
+{
+    $rows = Capsule::table('tblhostingconfigoptions')
+        ->where('relid', $serviceId)
+        ->get();
+
+    $result = [];
+    foreach ($rows as $row) {
+        $option = Capsule::table('tblproductconfigoptions')
+            ->where('id', $row->configid)
+            ->first();
+
+        if (!$option) continue;
+
+        $optionName = $option->optionname;
+        $optiontype = (int)$option->optiontype;
+
+        if ($optiontype === 4) {
+            // Quantity type — the selected value is stored in qty column
+            $result[$optionName] = [
+                'type' => 'quantity',
+                'qty'  => (int)($row->qty ?? 0),
+            ];
+        } else {
+            $subOptionName = Capsule::table('tblproductconfigoptionssub')
+                ->where('id', $row->optionid)
+                ->value('optionname');
+
+            $result[$optionName] = [
+                'type'  => 'option',
+                'value' => $subOptionName ?? '',
+            ];
+        }
+    }
+
+    return $result;
+}
+ 
 function products_reseller_server_CreateAccount($params) {
     
     $billingCycle = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('billingcycle');
-    $qty = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('qty');
-    $domain = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('domain');
+    $qty      = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('qty');
+    $domain   = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('domain');
     $username = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('username');
-    $ip = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('dedicatedip');
-    
+    $ip       = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('dedicatedip');
+ 
+    $customFields  = prs_getServiceCustomFields($params['serviceid']);
+    $configOptions = prs_getServiceConfigOptions($params['serviceid']);
     
     $main_class = new ProductsReseller_Main();
     
     return $main_class->create_account([
-        'serviceid' => $params['serviceid'],
-        'billingcycle' => $billingCycle,
-        'qty'       => $qty,
-        'domain'    => $domain,
-        'username'  => $username,
-        'password'  => $params['password'],
-        'ip_address' => $ip,
+        'serviceid'        => $params['serviceid'],
+        'billingcycle'     => $billingCycle,
+        'qty'              => $qty,
+        'domain'           => $domain,
+        'username'         => $username,
+        'password'         => $params['password'],
+        'ip_address'       => $ip,
         'selected_product' => $params['configoption1'],
-        'server_id'     => $params['serverid'],
-        'action'    => 'CreateAccount'
+        'serverhostname' => $params['serverhostname'],
+        'serverusername' => $params['serverusername'],
+        'serverpassword' => $params['serverpassword'],
+        'action'           => 'CreateAccount',
+        'custom_fields'    => $customFields,
+        'config_options'   => $configOptions,
     ]);
 }
-
+ 
 function products_reseller_server_SuspendAccount($params) {
-    $domain = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('domain');
+    $domain   = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('domain');
     $username = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('username');
-    $ip = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('dedicatedip');
+    $ip       = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('dedicatedip');
+ 
+    $customFields  = prs_getServiceCustomFields($params['serviceid']);
+    $configOptions = prs_getServiceConfigOptions($params['serviceid']);
+ 
     $main_class = new ProductsReseller_Main();
     
     return $main_class->suspend_account([
-        'serviceid' => $params['serviceid'],
-        'server_id'     => $params['serverid'],
-        'suspendreason' => $params['suspendreason'],
-        'action'    => 'SuspendAccount',
-        'domain'    => $domain,
-        'username'  => $username,
-        'password'  => $params['password'],
-        'ip_address' => $ip,
+        'serviceid'      => $params['serviceid'],
+        'serverhostname' => $params['serverhostname'],
+        'serverusername' => $params['serverusername'],
+        'serverpassword' => $params['serverpassword'],
+        'suspendreason'  => $params['suspendreason'],
+        'action'         => 'SuspendAccount',
+        'domain'         => $domain,
+        'username'       => $username,
+        'password'       => $params['password'],
+        'ip_address'     => $ip,
+        'custom_fields'  => $customFields,
+        'config_options' => $configOptions,
     ]);
 }
-
+ 
 function products_reseller_server_UnsuspendAccount($params) {
-    $domain = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('domain');
+    $domain   = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('domain');
     $username = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('username');
-    $ip = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('dedicatedip');
+    $ip       = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('dedicatedip');
+ 
+    $customFields  = prs_getServiceCustomFields($params['serviceid']);
+    $configOptions = prs_getServiceConfigOptions($params['serviceid']);
     
     $main_class = new ProductsReseller_Main();
     
     return $main_class->unsuspend_account([
-        'serviceid' => $params['serviceid'],
-        'server_id'     => $params['serverid'],
-        'action'    => 'UnsuspendAccount',
-        'domain'    => $domain,
-        'username'  => $username,
-        'password'  => $params['password'],
-        'ip_address' => $ip,
+        'serviceid'      => $params['serviceid'],
+        'serverhostname' => $params['serverhostname'],
+        'serverusername' => $params['serverusername'],
+        'serverpassword' => $params['serverpassword'],
+        'action'         => 'UnsuspendAccount',
+        'domain'         => $domain,
+        'username'       => $username,
+        'password'       => $params['password'],
+        'ip_address'     => $ip,
+        'custom_fields'  => $customFields,
+        'config_options' => $configOptions,
     ]);
 }
-
+ 
 function products_reseller_server_TerminateAccount($params) {
-    $domain = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('domain');
+    $domain   = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('domain');
     $username = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('username');
-    $ip = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('dedicatedip');
+    $ip       = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('dedicatedip');
+ 
+    $customFields  = prs_getServiceCustomFields($params['serviceid']);
+    $configOptions = prs_getServiceConfigOptions($params['serviceid']);
     
     $main_class = new ProductsReseller_Main();
     
     return $main_class->terminate_account([
-        'serviceid' => $params['serviceid'],
-        'server_id'     => $params['serverid'],
-        'action'    => 'TerminateAccount',
-        'domain'    => $domain,
-        'username'  => $username,
-        'password'  => $params['password'],
-        'ip_address' => $ip,
+        'serviceid'      => $params['serviceid'],
+        'serverhostname' => $params['serverhostname'],
+        'serverusername' => $params['serverusername'],
+        'serverpassword' => $params['serverpassword'],
+        'action'         => 'TerminateAccount',
+        'domain'         => $domain,
+        'username'       => $username,
+        'password'       => $params['password'],
+        'ip_address'     => $ip,
+        'custom_fields'  => $customFields,
+        'config_options' => $configOptions,
     ]);
 }
-
+ 
 function products_reseller_server_ChangePackage($params) {
-    $domain = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('domain');
+    $domain   = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('domain');
     $username = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('username');
-    $ip = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('dedicatedip');
+    $ip       = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('dedicatedip');
+ 
+    $customFields  = prs_getServiceCustomFields($params['serviceid']);
+    $configOptions = prs_getServiceConfigOptions($params['serviceid']);
     
     $main_class = new ProductsReseller_Main();
     
     return $main_class->change_package([
-        'serviceid' => $params['serviceid'],
-        'server_id'     => $params['serverid'],
-        'action'    => 'ChangePackage',
-        'domain'    => $domain,
-        'username'  => $username,
-        'password'  => $params['password'],
-        'ip_address' => $ip,
+        'serviceid'      => $params['serviceid'],
+        'serverhostname' => $params['serverhostname'],
+        'serverusername' => $params['serverusername'],
+        'serverpassword' => $params['serverpassword'],
+        'action'         => 'ChangePackage',
+        'domain'         => $domain,
+        'username'       => $username,
+        'password'       => $params['password'],
+        'ip_address'     => $ip,
+        'custom_fields'  => $customFields,
+        'config_options' => $configOptions,
     ]);
 }
-
-
+ 
+ 
 function products_reseller_server_ChangePassword($params) {
-    $domain = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('domain');
+    $domain   = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('domain');
     $username = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('username');
-    $ip = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('dedicatedip');
+    $ip       = Capsule::table('tblhosting')->where('id', $params['serviceid'])->value('dedicatedip');
+ 
+    $customFields  = prs_getServiceCustomFields($params['serviceid']);
+    $configOptions = prs_getServiceConfigOptions($params['serviceid']);
     
     $main_class = new ProductsReseller_Main();
     
     return $main_class->change_password([
-        'serviceid' => $params['serviceid'],
-        'server_id'     => $params['serverid'],
-        'password'      => $params['password'],
-        'action'    => 'ChangePassword',
-        'domain'    => $domain,
-        'username'  => $username,
-        'ip_address' => $ip,
+        'serviceid'      => $params['serviceid'],
+        'serverhostname' => $params['serverhostname'],
+        'serverusername' => $params['serverusername'],
+        'serverpassword' => $params['serverpassword'],
+        'password'       => $params['password'],
+        'action'         => 'ChangePassword',
+        'domain'         => $domain,
+        'username'       => $username,
+        'ip_address'     => $ip,
+        'custom_fields'  => $customFields,
+        'config_options' => $configOptions,
     ]);
+}
+
+function products_reseller_server_UsageUpdate($params) {
+    $services = Capsule::table('tblhosting')
+        ->where('server', $params['serverid'])
+        ->get(['id']);
+
+    if ($services->isEmpty()) {
+        return;
+    }
+
+    $serviceIds = [];
+    foreach ($services as $svc) {
+        $serviceIds[] = $svc->id;
+    }
+
+    $main_class = new ProductsReseller_Main();
+    $res = $main_class->get_usage_update([
+        'serverhostname' => $params['serverhostname'],
+        'serverusername' => $params['serverusername'],
+        'serverpassword' => $params['serverpassword'],
+        'action'         => 'GetUsageData',
+        'service_ids'    => $serviceIds,
+    ]);
+
+    if (empty($res['status']) || $res['status'] !== 'success' || empty($res['data'])) {
+        return;
+    }
+
+    foreach ($res['data'] as $item) {
+        $remoteServiceId = (int)($item['remote_service_id'] ?? 0);
+        if ($remoteServiceId <= 0) continue;
+        Capsule::table('tblhosting')->where('id', $remoteServiceId)->update([
+            'diskusage'   => $item['diskusage'],
+            'disklimit'   => $item['disklimit'],
+            'bwusage'     => $item['bwusage'],
+            'bwlimit'     => $item['bwlimit'],
+            'lastupdate' => $item['lastupdate'],
+        ]);
+    }
+
 }
 
 function products_reseller_server_ServiceSingleSignOn($params) {
     try {
         $serviceId = $params['serviceid'] ?? null;
-        $serverId  = $params['serverid'] ?? null;
 
         $app = $params['app'] ?? ($_GET['app'] ?? 'Home'); // prefer $params, fallback to $_GET
 
@@ -240,7 +392,9 @@ function products_reseller_server_ServiceSingleSignOn($params) {
 
         $ssoResponse = $mainClass->get_cpanel_sso([
             'serviceid' => $serviceId,
-            'server_id' => $serverId,
+            'serverhostname' => $params['serverhostname'],
+            'serverusername' => $params['serverusername'],
+            'serverpassword' => $params['serverpassword'],
             'action'    => 'CreateSSOSession',
             'app'       => $app,
         ]);
@@ -282,7 +436,9 @@ function products_reseller_server_CustomActions($params): CustomActionCollection
         $main = new ProductsReseller_Main();
         $res = $main->get_server_name([
             'serviceid' => $params['serviceid'] ?? null,
-            'server_id' => $serverId,
+            'serverhostname' => $params['serverhostname'],
+            'serverusername' => $params['serverusername'],
+            'serverpassword' => $params['serverpassword'],
             'action'    => 'GetServerName',
         ]);
 
@@ -308,8 +464,6 @@ function products_reseller_server_CustomActions($params): CustomActionCollection
     return $collection;
 }
 
-
-
 function products_reseller_server_ClientArea($params) {
     try {
         $service = Capsule::table('tblhosting')
@@ -328,7 +482,9 @@ function products_reseller_server_ClientArea($params) {
 
         $res = $main_class->get_server_name([
             'serviceid' => $params['serviceid'],
-            'server_id' => $params['serverid'],
+            'serverhostname' => $params['serverhostname'],
+            'serverusername' => $params['serverusername'],
+            'serverpassword' => $params['serverpassword'],
             'action'    => 'GetServerName'
         ]);
         
@@ -337,12 +493,14 @@ function products_reseller_server_ClientArea($params) {
         if($status == 'Active') {
             if (!empty($res['server_name']) && strtolower($res['server_name']) === 'cpanel') {
             
-                $usageRes = $main_class->get_usage_deatils([
-                    'serviceid' => $params['serviceid'],
-                    'server_id' => $params['serverid'],
-                    'action'    => 'get_Bandwidth_Disk_Usage'
-                ]);
-            
+                $diskUsed    = (float)($service->diskusage ?? 0);
+                $diskLimit   = (float)($service->disklimit ?? 0);
+                $bwUsed      = (float)($service->bwusage ?? 0);
+                $bwLimit     = (float)($service->bwlimit ?? 0);
+                $lastUpdated = $service->lastupdated ?? date('Y-m-d H:i:s');
+                $diskPercent = ($diskLimit > 0) ? round(($diskUsed / $diskLimit) * 100, 2) : 0;
+                $bwPercent   = ($bwLimit > 0) ? round(($bwUsed / $bwLimit) * 100, 2) : 0;
+
                 return [
                     'tabOverviewReplacementTemplate' => 'cpanel.tpl',
                     'vars' => [
@@ -401,13 +559,13 @@ function products_reseller_server_ClientArea($params) {
                             ],
                         ],
                         'usage'     => [
-                            'disk_used'       => $usageRes['disk_usage']['used_mb'] ?? 0,
-                            'disk_limit'      => ($usageRes['disk_usage']['limit_mb'] ?? 0) == 0 ? 'Unlimited M' : $usageRes['disk_usage']['limit_mb'] . ' M',
-                            'disk_percent'    => $usageRes['disk_usage']['percentage_used'] ?? 0,
-                            'bw_used'         => $usageRes['bandwidth_usage']['current_month_mb'] ?? 0,
-                            'bw_limit'        => ($usageRes['bandwidth_usage']['limit_mb'] ?? 0) == 0 ? 'Unlimited M' : $usageRes['bandwidth_usage']['limit_mb'] . ' M',
-                            'bw_percent'      => $usageRes['bandwidth_usage']['percentage_used'] ?? 0,
-                            'last_updated'    => $usageRes['last_updated'] ?? date('Y-m-d H:i:s'),
+                            'disk_used'       => $diskUsed,
+                            'disk_limit'      => $diskLimit == 0 ? 'Unlimited M' : $diskLimit . ' M',
+                            'disk_percent'    => $diskPercent,
+                            'bw_used'         => $bwUsed,
+                            'bw_limit'        => $bwLimit == 0 ? 'Unlimited M' : $bwLimit . ' M',
+                            'bw_percent'      => $bwPercent,
+                            'last_updated'    => $lastUpdated,
                         ]
                     ],
                 ];
